@@ -7,17 +7,18 @@
 // usage: adjuster command [-i] [-t]
 //   command - string in printf format where %f specifies where to place the
 //             'adjusted' variable
-//   i       - optional initial variable value (default==XXX)
+//   i       - optional initial variable value list
+//   f       - optional initial variable fraction list
 //   t       - optional timeout between last change and command firing
 //             (default==XXX)
 
 void usage() {
    printf("usage: caliper command [-i] [-t]\n");
-   printf("       command - string in printf format where %f specifies\n");
+   printf("       command - string in printf format where %%f specifies\n");
    printf("                 where to place the 'adjusted' variable\n");
-   printf("       i - optional initial variable value (default==XXX)\n");
-   printf("       t - optional timeout between last change and command firing\n");
-   printf("           (default==XXX)\n");
+   printf("       i - optional initial variable value list \n");
+   printf("       f - optional fraction list\n");
+   //printf("       t - optional timeout between last change and command firing\n");
 }
 
 #include <stdio.h>
@@ -108,27 +109,14 @@ main(int argc, char *argv[])
 
    for(arg = 1; arg < argc; arg++) {
       string = argv[arg];
-      printf("Arg %d = [%s]\n", arg, string);
 
       switch(state) {
          case 'l':
-	    printf("L\n");
 	    if(*string == '-') {
 	       switch(string[1]) {
-		  case 'f':
-		     printf("got f\n");
-                     state='f';
-		     i = 0;
-		  break;
-
-		  case 'i':
-		     printf("got i\n");
-                     state='i';
-		     i = 0;
-		  break;
-
-		  case 't': 
-                  break;
+		  case 'f': state='f'; i = 0; break;
+		  case 'i': state='i'; i = 0; break;
+		  case 't': break;
 
 		  default:
 		     usage();
@@ -138,10 +126,8 @@ main(int argc, char *argv[])
 	 break;
 
 	 case 'f':
-	    printf("F\n");
 	    if(*string != '-') {
-printf("var[%d].fraction=%s\n", i, string);
-                   var[i++].fraction = atoi(string);
+	       var[i++].fraction = atoi(string);
 	    } else {
                arg--;
                state = 'l';
@@ -149,9 +135,7 @@ printf("var[%d].fraction=%s\n", i, string);
 	 break;
 
 	 case 'i':
-	    printf("I\n");
 	    if(*string!='-') {
-printf("var[%d].initial=%s\n", i, string);
 	       var[i].initial = atof(string);
 	       var[i].value   = var[i].initial;
                i++;
