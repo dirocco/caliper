@@ -11,6 +11,15 @@
 //   t       - optional timeout between last change and command firing
 //             (default==XXX)
 
+void usage() {
+   printf("usage: caliper command [-i] [-t]\n");
+   printf("       command - string in printf format where %f specifies\n");
+   printf("                 where to place the 'adjusted' variable\n");
+   printf("       i - optional initial variable value (default==XXX)\n");
+   printf("       t - optional timeout between last change and command firing\n");
+   printf("           (default==XXX)\n");
+}
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -57,6 +66,15 @@ int parseARGV(char *commandLine, char **argv) {
    return argc;
 }
 
+void help() {
+   printf("a-d: set parameter to modify\n");
+   printf("0-9: set delta (power of 10)\n");
+   printf("+,-: increment and decrement\n");
+   printf("f:   toggle fractional delta\n");
+   printf("!:   toggle immediate re-run\n");
+   printf("?:   help\n");
+   printf("q:   quit\n");
+}
 
 main(int argc, char *argv[])
 {
@@ -71,6 +89,7 @@ main(int argc, char *argv[])
    } var[5] = { 0 };
 
    int index = 0;
+   int immediate = 0;
 
    static struct termios Otty, Ntty;
    char string[100];
@@ -84,13 +103,18 @@ main(int argc, char *argv[])
                break;
             case 't':
                break;
+            default:
+               usage();
+               exit(-1);
          }
       }
    }
 
+   help();
+
    sprintf(string, argv[1], 
 	  var[0].value, var[1].value, var[2].value, var[3].value); 
-   printf("%s (hit <space> to run)\n", string);
+   printf("%s delta = %f (hit <space> to run)\n", string, delta);
 
    fflush(stdout);
    tcgetattr( 0, &Otty);
@@ -112,36 +136,41 @@ main(int argc, char *argv[])
       } else if ((car<='9')&&(car>='0')) {
 	 int tmp = car - '0';
 	 // delta = pow(10.0, -1.0*tmp);
-	 delta = pow(10.0, (var[index].fraction?1:-1)*tmp);
-	 printf("tmp=%d, %f\n", tmp, delta);
+	 delta = pow(10.0, (var[index].fraction?-1:1)*tmp);
+	 // printf("tmp=%d, %f\n", tmp, delta);
 	 putchar('\n');
       } else {
 	 switch(car) {
 	    case ' ':
-	       printf(argv[1], 
-		     var[0].value, var[1].value, var[2].value, var[3].value); 
-	       printf("\n");
+	       // printf(argv[1], 
+		   //   var[0].value, var[1].value, var[2].value, var[3].value); 
+	       // printf("\n");
 	    break;
 
-	    case '=':
 	    case '+': var[index].value+=delta; break;
 	    case '-': var[index].value-=delta; break;
 
 	    case 'q': done = 1; break;
 	    case 'f': 
                var[index].fraction= !var[index].fraction; 
+               delta = 1/delta;
 	    break;
 
-	    case '?':
+	    case '!': immediate = !immediate; break;
+	    case '?': help(); break;
+
 	    default: printf("got a <%c>\n", car); break;
 	 }
       }
   
       sprintf(string, argv[1], 
 	    var[0].value, var[1].value, var[2].value, var[3].value); 
-      printf("%s (hit <space> to re-run)\n", string);
+      printf("%s delta = %f", string, delta);
+      if (!immediate)
+         printf(" (hit <space> to re-run)");
+      printf("\n");
 
-     if (car == ' ') {
+     if (immediate || car == ' ') {
 #if 0
      system(string);
 #else
