@@ -74,7 +74,6 @@ main(int argc, char *argv[])
 
    static struct termios Otty, Ntty;
    char string[100];
-   char oldstring[100];
 
    while(++x < argc) {
       if (*argv[x] == '-') {
@@ -88,6 +87,10 @@ main(int argc, char *argv[])
          }
       }
    }
+
+   sprintf(string, argv[1], 
+	  var[0].value, var[1].value, var[2].value, var[3].value); 
+   printf("%s (hit <space> to run)\n", string);
 
    fflush(stdout);
    tcgetattr( 0, &Otty);
@@ -117,6 +120,7 @@ main(int argc, char *argv[])
 	    case ' ':
 	       printf(argv[1], 
 		     var[0].value, var[1].value, var[2].value, var[3].value); 
+	       printf("\n");
 	    break;
 
 	    case '=':
@@ -135,11 +139,12 @@ main(int argc, char *argv[])
   
       sprintf(string, argv[1], 
 	    var[0].value, var[1].value, var[2].value, var[3].value); 
-      // system(string);
-      printf("%s\n", string);
+      printf("%s (hit <space> to re-run)\n", string);
 
-     if (strcmp(oldstring,string)) {
-     strcpy(oldstring,string);
+     if (car == ' ') {
+#if 0
+     system(string);
+#else
      char *args[5];
      parseARGV(string, args);
         
@@ -150,12 +155,13 @@ main(int argc, char *argv[])
         wait(&status);
      }
      if(!(pid = vfork())) {
-	printf("child\n");
-	execv(args[0], &args[1]);
+	// printf("child\n");
+	execvp(args[0], &args[0]);
      } else {
-	printf("parent\n");
+	// printf("parent\n");
      } 
      }
+#endif
 
    }
 

@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 {
    PABLIO_Stream  *outStream;
    double theta = 0.0, delta = 2.0 * 3.1415 / (double)SAMPLE_RATE;
-   double frequency = 1.0, attenuation = 1.0;
+   double frequency = FREQUENCY, attenuation = 1.0;
    int x; 
 
    if (argc > 1)
@@ -30,4 +30,6 @@ int main(int argc, char *argv[])
       // blocking write provides flow control
       WriteAudioStream(outStream, buffer, NUM_FRAMES); 
    }
+
+   CloseAudioStream(outStream);
 }
