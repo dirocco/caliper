@@ -80,8 +80,10 @@ void help() {
 
 main(int argc, char *argv[])
 {
-   int i=0,x;
+   int i, x;
    char car;
+   int done;
+   char *string;
 
    double delta = 1.0;
    
@@ -95,30 +97,73 @@ main(int argc, char *argv[])
    int immediate = 1;
 
    static struct termios Otty, Ntty;
-   char string[100];
 
    for(x = 0; x < 5; x++)
       var[x].initial = 0.0;
 
-   x = 0;
-   while(++x < argc) {
-      if (*argv[x] == '-') {
-         switch(*++argv[x]) {
-            case 'i':
-               while (i < 5 && ++x < argc && *argv[x] != '-') {
-                   var[i].initial = atof(argv[x]);
-                   var[i].value   = var[i].initial;
-		   i++;
-               }
-               break;
-            case 't':
-               break;
-            default:
-               usage();
-               exit(-1);
-         }
+   {
+   int arg;
+   char *string;
+   char state = 'l';
+
+   for(arg = 1; arg < argc; arg++) {
+      string = argv[arg];
+      printf("Arg %d = [%s]\n", arg, string);
+
+      switch(state) {
+         case 'l':
+	    printf("L\n");
+	    if(*string == '-') {
+	       switch(string[1]) {
+		  case 'f':
+		     printf("got f\n");
+                     state='f';
+		     i = 0;
+		  break;
+
+		  case 'i':
+		     printf("got i\n");
+                     state='i';
+		     i = 0;
+		  break;
+
+		  case 't': 
+                  break;
+
+		  default:
+		     usage();
+		     exit(-1);
+	       }
+	    }
+	 break;
+
+	 case 'f':
+	    printf("F\n");
+	    if(*string != '-') {
+printf("var[%d].fraction=%s\n", i, string);
+                   var[i++].fraction = atoi(string);
+	    } else {
+               arg--;
+               state = 'l';
+	    }
+	 break;
+
+	 case 'i':
+	    printf("I\n");
+	    if(*string!='-') {
+printf("var[%d].initial=%s\n", i, string);
+	       var[i].initial = atof(string);
+	       var[i].value   = var[i].initial;
+               i++;
+	    } else {
+               arg--;
+               state = 'l';
+	    }
+	 break;
       }
+   } // while
    }
+
 
    help();
 
@@ -137,25 +182,19 @@ main(int argc, char *argv[])
    tcsetattr( 0, TCSANOW, &Ntty);
 
    pid_t pid = 0;
-   int done = 0;
+   done = 0;
+   int exp = 0;
    while(!done) {
       car = getchar();
 
       if((car<'d')&&(car>='a')) {
 	 index = car - 'a';
       } else if ((car<='9')&&(car>='0')) {
-	 int tmp = car - '0';
-	 // delta = pow(10.0, -1.0*tmp);
-	 delta = pow(10.0, (var[index].fraction?-1:1)*tmp);
-	 // printf("tmp=%d, %f\n", tmp, delta);
+	 exp = car - '0';
 	 putchar('\n');
       } else {
 	 switch(car) {
-	    case ' ':
-	       // printf(argv[1], 
-		   //   var[0].value, var[1].value, var[2].value, var[3].value); 
-	       // printf("\n");
-	    break;
+	    case ' ': break;
 
 	    case '=':
 	    case '+': var[index].value+=delta; break;
@@ -167,7 +206,7 @@ main(int argc, char *argv[])
 	    case 'q': done = 1; break;
 	    case 'f': 
                var[index].fraction= !var[index].fraction; 
-               delta = 1/delta;
+               delta = 1.0/delta;
 	    break;
 
 	    case '!': immediate = !immediate; break;
@@ -177,6 +216,7 @@ main(int argc, char *argv[])
 	 }
       }
   
+      delta = pow(10.0, (var[index].fraction?-1:1)*exp);
       sprintf(string, argv[1], 
 	    var[0].value, var[1].value, var[2].value, var[3].value); 
       printf("%s delta = %f", string, delta);
