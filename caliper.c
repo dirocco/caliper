@@ -12,11 +12,14 @@
 //             (default==XXX)
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
 #include <unistd.h>
 #include <termios.h>
 #include <sys/ioctl.h>
 // #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 
 
 #include <math.h>
@@ -57,7 +60,7 @@ int parseARGV(char *commandLine, char **argv) {
 
 main(int argc, char *argv[])
 {
-   int x;
+   int i=0,x=0;
    char car;
 
    double delta = 1.0;
@@ -71,6 +74,20 @@ main(int argc, char *argv[])
 
    static struct termios Otty, Ntty;
    char string[100];
+   char oldstring[100];
+
+   while(++x < argc) {
+      if (*argv[x] == '-') {
+         switch(*++argv[x]) {
+            case 'i':
+               while (i < 5 && ++x < argc && *argv[x] != '-')
+                   var[i++].value = atof(argv[x]);
+               break;
+            case 't':
+               break;
+         }
+      }
+   }
 
    fflush(stdout);
    tcgetattr( 0, &Otty);
@@ -82,6 +99,7 @@ main(int argc, char *argv[])
    Ntty.c_cc[VTIME]  = 1;   // minimum characters to wait for
    tcsetattr( 0, TCSANOW, &Ntty);
 
+   pid_t pid = 0;
    int done = 0;
    while(!done) {
       car = getchar();
@@ -120,33 +138,30 @@ main(int argc, char *argv[])
       // system(string);
       printf("%s\n", string);
 
+     if (strcmp(oldstring,string)) {
+     strcpy(oldstring,string);
      char *args[5];
      parseARGV(string, args);
-
-     for (x = 0; x <= 5; x++) {
-        if (args[x])
-           printf("%s ",args[x]);
-        else {
-           printf("\n");
-           break;
-        }
-     }
         
 
-#if 0
-     pid_t pid;
      int status;
-     if(!vfork()) {
+     if (pid) {
+        kill(pid, SIGKILL);
+        wait(&status);
+     }
+     if(!(pid = vfork())) {
 	printf("child\n");
-	execvp(args[0], &args[1]);
+	execv(args[0], &args[1]);
      } else {
 	printf("parent\n");
-	wait(&status);
-	printf("finished waiting\n");
      } 
-#endif
+     }
 
    }
 
+   if (pid)
+      kill(pid, SIGKILL);
    tcsetattr( 0, TCSANOW, &Otty);
+
+   exit(0);
 }
