@@ -9,6 +9,7 @@
 //             'adjusted' variable
 //   i       - optional initial variable value list
 //   f       - optional initial variable fraction list
+//   m       - optional magnitude variable list
 //   t       - optional timeout between last change and command firing
 //             (default==XXX)
 
@@ -18,6 +19,7 @@ void usage() {
    printf("                 where to place the 'adjusted' variable\n");
    printf("       i - optional initial variable value list \n");
    printf("       f - optional fraction list\n");
+   printf("       m - optional magnitude list\n");
    //printf("       t - optional timeout between last change and command firing\n");
 }
 
@@ -86,12 +88,13 @@ main(int argc, char *argv[])
    int done;
    char *string;
 
-   double delta = 1.0;
+   double delta;
    
    struct {
       double value; 
       double initial; 
       int fraction;
+      int magnitude;
    } var[5] = { 0 };
 
    int index     = 0;
@@ -116,11 +119,11 @@ main(int argc, char *argv[])
 	       switch(string[1]) {
 		  case 'f': state='f'; i = 0; break;
 		  case 'i': state='i'; i = 0; break;
+		  case 'm': state='m'; i = 0; break;
 		  case 't': break;
 
-		  default:
-		     usage();
-		     exit(-1);
+		  default: 
+                     usage(); exit(-1);
 	       }
 	    }
 	 break;
@@ -128,6 +131,15 @@ main(int argc, char *argv[])
 	 case 'f':
 	    if(*string != '-') {
 	       var[i++].fraction = atoi(string);
+	    } else {
+               arg--;
+               state = 'l';
+	    }
+	 break;
+
+	 case 'm':
+	    if(*string != '-') {
+	       var[i++].magnitude = atoi(string);
 	    } else {
                arg--;
                state = 'l';
@@ -151,6 +163,7 @@ main(int argc, char *argv[])
 
    help();
 
+   string = (char *) malloc(200);
    sprintf(string, argv[1], 
 	  var[0].value, var[1].value, var[2].value, var[3].value); 
    printf("%s delta = %f (hit <space> to run)\n", string, delta);
@@ -167,14 +180,14 @@ main(int argc, char *argv[])
 
    pid_t pid = 0;
    done = 0;
-   int exp = 0;
+   delta = pow(10.0, (var[index].fraction?-1:1)*var[index].magnitude);
    while(!done) {
       car = getchar();
 
       if((car<'d')&&(car>='a')) {
 	 index = car - 'a';
       } else if ((car<='9')&&(car>='0')) {
-	 exp = car - '0';
+         var[index].magnitude = car - '0';
 	 putchar('\n');
       } else {
 	 switch(car) {
@@ -200,7 +213,7 @@ main(int argc, char *argv[])
 	 }
       }
   
-      delta = pow(10.0, (var[index].fraction?-1:1)*exp);
+      delta = pow(10.0, (var[index].fraction?-1:1)*var[index].magnitude);
       sprintf(string, argv[1], 
 	    var[0].value, var[1].value, var[2].value, var[3].value); 
       printf("%s delta = %f", string, delta);
