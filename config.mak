@@ -9,8 +9,8 @@
 CHILDDIRS=
 
 #the path to the directory which contains configure for this directory
-CONFIGROOT=.
+# CONFIGROOT=.
+CONFIGROOT=../../Authors
 
-#includes for a configure parent
 include ../../include/make-includes/config.make.inc
-include ../../include/make-includes/config.parent.make.inc
+include ../../include/make-includes/config.child.make.inc
