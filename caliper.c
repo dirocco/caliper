@@ -147,6 +147,7 @@ main(int argc, char *argv[])
 	       // printf("\n");
 	    break;
 
+	    case '=':
 	    case '+': var[index].value+=delta; break;
 	    case '-': var[index].value-=delta; break;
 
