@@ -163,6 +163,7 @@ main(int argc, char *argv[])
 
    help();
 
+   delta = pow(10.0, (var[index].fraction?-1:1)*var[index].magnitude);
    string = (char *) malloc(200);
    sprintf(string, argv[1], 
 	  var[0].value, var[1].value, var[2].value, var[3].value); 
@@ -180,7 +181,6 @@ main(int argc, char *argv[])
 
    pid_t pid = 0;
    done = 0;
-   delta = pow(10.0, (var[index].fraction?-1:1)*var[index].magnitude);
    while(!done) {
       car = getchar();
 
