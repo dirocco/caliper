@@ -71,6 +71,8 @@ void help() {
    printf("0-9: set delta (power of 10)\n");
    printf("+,-: increment and decrement\n");
    printf("f:   toggle fractional delta\n");
+   printf("z:   zero current parameter\n");
+   printf("i:   restore initial parameter\n");
    printf("!:   toggle immediate re-run\n");
    printf("?:   help\n");
    printf("q:   quit\n");
@@ -78,28 +80,36 @@ void help() {
 
 main(int argc, char *argv[])
 {
-   int i=0,x=0;
+   int i=0,x;
    char car;
 
    double delta = 1.0;
    
    struct {
       double value; 
+      double initial; 
       int fraction;
    } var[5] = { 0 };
 
-   int index = 0;
-   int immediate = 0;
+   int index     = 0;
+   int immediate = 1;
 
    static struct termios Otty, Ntty;
    char string[100];
 
+   for(x = 0; x < 5; x++)
+      var[x].initial = 0.0;
+
+   x = 0;
    while(++x < argc) {
       if (*argv[x] == '-') {
          switch(*++argv[x]) {
             case 'i':
-               while (i < 5 && ++x < argc && *argv[x] != '-')
-                   var[i++].value = atof(argv[x]);
+               while (i < 5 && ++x < argc && *argv[x] != '-') {
+                   var[i].initial = atof(argv[x]);
+                   var[i].value   = var[i].initial;
+		   i++;
+               }
                break;
             case 't':
                break;
@@ -150,6 +160,9 @@ main(int argc, char *argv[])
 	    case '=':
 	    case '+': var[index].value+=delta; break;
 	    case '-': var[index].value-=delta; break;
+
+	    case 'i': var[index].value=var[index].initial; break;
+	    case 'z': var[index].value=0.0; break;
 
 	    case 'q': done = 1; break;
 	    case 'f': 
