@@ -2,5 +2,4 @@ src_v1 caliper.c	src_v1.tar Volume1/src/caliper/caliper.c
 src_v1 sine.c	        src_v1.tar Volume1/src/caliper/sine.c
 src_v1 config.mak	src_v1.tar Volume1/src/caliper/config.mak
 src_v1 Makefile.in	src_v1.tar Volume1/src/caliper/Makefile.in
-
-# sine caliper
+src_v1 runme    	src_v1.tar Volume1/src/caliper/runme
