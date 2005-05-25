@@ -27,11 +27,15 @@ void usage() {
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
+#ifdef WIN32
+#include <windows.h>
+#else
 #include <termios.h>
 #include <sys/ioctl.h>
+#include <sys/wait.h>
+#endif
 // #include <sys/time.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 
 
 #include <math.h>
@@ -100,7 +104,9 @@ main(int argc, char *argv[])
    int index     = 0;
    int immediate = 1;
 
+#ifndef WIN32
    static struct termios Otty, Ntty;
+#endif
 
    for(x = 0; x < 5; x++)
       var[x].initial = 0.0;
@@ -164,12 +170,13 @@ main(int argc, char *argv[])
    help();
 
    delta = pow(10.0, (var[index].fraction?-1:1)*var[index].magnitude);
-   string = (char *) malloc(200);
+   string = (char *) calloc(200,1);
    sprintf(string, argv[1], 
 	  var[0].value, var[1].value, var[2].value, var[3].value); 
    printf("%s delta = %f (hit <space> to run)\n", string, delta);
 
    fflush(stdout);
+#ifndef WIN32
    tcgetattr( 0, &Otty);
    Ntty = Otty;
 
@@ -178,11 +185,17 @@ main(int argc, char *argv[])
    Ntty.c_cc[VMIN]   = 1;   // minimum time to wait
    Ntty.c_cc[VTIME]  = 1;   // minimum characters to wait for
    tcsetattr( 0, TCSANOW, &Ntty);
+#endif
 
    pid_t pid = 0;
    done = 0;
    while(!done) {
+#ifdef WIN32
+      while(!kbhit());
+      car = getch();
+#else
       car = getchar();
+#endif
 
       if((car<'d')&&(car>='a')) {
 	 index = car - 'a';
@@ -224,12 +237,21 @@ main(int argc, char *argv[])
      if (immediate || car == ' ') {
 #if 0
      system(string);
-#else
+#endif
      char *args[5];
      parseARGV(string, args);
         
 
      int status;
+#ifdef WIN32
+     if (pid) {
+        TerminateProcess((HANDLE) pid, 0);
+        status = STILL_ACTIVE;
+        while(status == STILL_ACTIVE)
+           GetExitCodeProcess((HANDLE) pid, (LPDWORD) &status);
+     }
+     pid = spawnvp(P_NOWAIT, args[0], &args[0]);
+#else
      if (pid) {
         kill(pid, SIGKILL);
         wait(&status);
@@ -240,14 +262,19 @@ main(int argc, char *argv[])
      } else {
 	// printf("parent\n");
      } 
-     }
 #endif
+     }
 
    }
 
+#ifdef WIN32
+   if (pid)
+      TerminateProcess((HANDLE) pid, 0);
+#else
    if (pid)
       kill(pid, SIGKILL);
    tcsetattr( 0, TCSANOW, &Otty);
+#endif
 
    exit(0);
 }
