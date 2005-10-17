@@ -1,14 +1,19 @@
 src_v1 caliper.c	src_v1.tar Volume1/src/caliper/caliper.c
 src_v2 caliper.c	src_v2.tar Volume2/src/caliper/caliper.c
+src_v3 caliper.c	src_v3.tar Volume3/src/caliper/caliper.c
 
 src_v1 sine.c	        src_v1.tar Volume1/src/caliper/sine.c
 src_v2 sine.c	        src_v2.tar Volume2/src/caliper/sine.c
+src_v3 sine.c	        src_v3.tar Volume3/src/caliper/sine.c
 
 src_v1 config.mak	src_v1.tar Volume1/src/caliper/config.mak
 src_v2 config.mak	src_v2.tar Volume2/src/caliper/config.mak
+src_v3 config.mak	src_v3.tar Volume3/src/caliper/config.mak
 
 src_v1 Makefile.in	src_v1.tar Volume1/src/caliper/Makefile.in
 src_v2 Makefile.in	src_v2.tar Volume2/src/caliper/Makefile.in
+src_v3 Makefile.in	src_v3.tar Volume3/src/caliper/Makefile.in
 
 src_v1 runme    	src_v1.tar Volume1/src/caliper/runme
 src_v2 runme    	src_v2.tar Volume2/src/caliper/runme
+src_v3 runme    	src_v3.tar Volume3/src/caliper/runme
